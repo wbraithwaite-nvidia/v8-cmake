@@ -838,7 +838,6 @@ target_include_directories(v8_torque_generated
 
 if (WIN32)
   list(JOIN torque_files " " torque_files)
-  message(STATUS ${torque_files})
 endif()
 
 add_custom_command(

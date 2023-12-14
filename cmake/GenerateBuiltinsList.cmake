@@ -12,7 +12,15 @@ function(v8_generate_builtins_list target-dir)
     OUTPUT ${output}
     COMMENT "Generating ${output}"
     VERBATIM)
+
+  add_custom_target(v8-bytecodes-builtin-list-target DEPENDS ${output})
+
   add_library(v8-bytecodes-builtin-list INTERFACE)
-  target_include_directories(v8-bytecodes-builtin-list INTERFACE ${target-dir})
-  target_sources(v8-bytecodes-builtin-list INTERFACE ${output})
+  add_dependencies(v8-bytecodes-builtin-list v8-bytecodes-builtin-list-target)
+  set_target_properties(v8-bytecodes-builtin-list
+    PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${target-dir})
+
+  #target_include_directories(v8-bytecodes-builtin-list INTERFACE ${target-dir})
+  #target_sources(v8-bytecodes-builtin-list INTERFACE ${output})
 endfunction()
