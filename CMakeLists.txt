@@ -836,14 +836,19 @@ target_include_directories(v8_torque_generated
     ${PROJECT_SOURCE_DIR}/v8
 )
 
+if (WIN32)
+  list(JOIN torque_files " " torque_files)
+  message(STATUS ${torque_files})
+endif()
+
 add_custom_command(
   COMMAND
     torque
     -o ${PROJECT_BINARY_DIR}/torque-generated
     -v8-root ${PROJECT_SOURCE_DIR}/v8
     ${torque_files}
-  COMMAND
-    ${CMAKE_COMMAND} -E touch ${torque-outputs} ${torque_outputs}
+  #COMMAND
+  #  ${CMAKE_COMMAND} -E touch ${torque-outputs} ${torque_outputs}
   DEPENDS
     torque
     ${torque_dirs}

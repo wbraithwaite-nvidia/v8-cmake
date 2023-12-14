@@ -18,6 +18,14 @@ std::string ErrorPrefixFor(TorqueMessage::Kind kind) {
   }
 }
 
+static std::vector<std::string> SplitFiles(std::string s)
+{
+  std::stringstream ss(s);
+  std::istream_iterator<std::string> begin(ss);
+  std::istream_iterator<std::string> end;
+  return std::vector<std::string>(begin, end);
+}
+
 int WrappedMain(int argc, const char** argv) {
   TorqueCompilerOptions options;
   options.collect_language_server_data = false;
@@ -36,7 +44,8 @@ int WrappedMain(int argc, const char** argv) {
       options.force_32bit_output = true;
     } else {
       // Otherwise it's a .tq file. Remember it for compilation.
-      files.emplace_back(std::move(argument));
+
+      files = std::move(SplitFiles(std::move(argument)));
       if (!StringEndsWith(files.back(), ".tq")) {
         std::cerr << "Unexpected command-line argument \"" << files.back()
                   << "\", expected a .tq file.\n";
