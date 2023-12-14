@@ -203,11 +203,15 @@ list(REMOVE_ITEM heap-sources
 )
 
 if(WIN32)
-  list(APPEND heap-sources
+  set(heap-asm
     $<${is-arm64}:v8/src/heap/base/asm/arm64/push_registers_masm.S>
     $<${is-ia32}:v8/src/heap/base/asm/ia32/push_registers_masm.S>
     $<${is-x64}:v8/src/heap/base/asm/x64/push_registers_masm.S>
-  )
+  )  
+  list(APPEND heap-sources ${heap-asm})
+  set_property(SOURCE v8/src/heap/base/asm/arm64/push_registers_masm.S PROPERTY LANGUAGE ASM_MASM)
+  set_property(SOURCE v8/src/heap/base/asm/ia32/push_registers_masm.S PROPERTY LANGUAGE ASM_MASM)
+  set_property(SOURCE v8/src/heap/base/asm/x64/push_registers_masm.S PROPERTY LANGUAGE ASM_MASM)
 else()
   list(APPEND heap-sources
     $<${is-arm64}:v8/src/heap/base/asm/arm64/push_registers_asm.cc>
@@ -779,24 +783,25 @@ list(TRANSFORM torque_files PREPEND v8/ OUTPUT_VARIABLE torque_files_abs)
 # Note: target v8_compiler depends on ${torque_outputs}. Maybe this should be
 # a source-only dependency.
 set(torque_outputs
-  ${PROJECT_BINARY_DIR}/torque-generated/class-debug-readers-tq.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/class-debug-readers-tq.cc
   ${PROJECT_BINARY_DIR}/torque-generated/class-debug-readers.cc
-  ${PROJECT_BINARY_DIR}/torque-generated/class-definitions-tq.cc
-  ${PROJECT_BINARY_DIR}/torque-generated/class-definitions.cc
-  ${PROJECT_BINARY_DIR}/torque-generated/class-verifiers-tq.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/class-definitions-tq.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/class-definitions.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/class-verifiers-tq.cc
   ${PROJECT_BINARY_DIR}/torque-generated/class-verifiers.cc
-  ${PROJECT_BINARY_DIR}/torque-generated/exported-macros-assembler-tq.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/exported-macros-assembler-tq.cc
   ${PROJECT_BINARY_DIR}/torque-generated/exported-macros-assembler.cc
-  ${PROJECT_BINARY_DIR}/torque-generated/factory-tq.cc
-  ${PROJECT_BINARY_DIR}/torque-generated/factory-tq.inc
+  #${PROJECT_BINARY_DIR}/torque-generated/factory-tq.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/factory-tq.inc
   ${PROJECT_BINARY_DIR}/torque-generated/factory.cc
   ${PROJECT_BINARY_DIR}/torque-generated/factory.inc
-  ${PROJECT_BINARY_DIR}/torque-generated/interface-descriptors-tq.inc
+  #${PROJECT_BINARY_DIR}/torque-generated/interface-descriptors-tq.inc
   ${PROJECT_BINARY_DIR}/torque-generated/interface-descriptors.inc
   ${PROJECT_BINARY_DIR}/torque-generated/objects-body-descriptors-inl.inc
-  ${PROJECT_BINARY_DIR}/torque-generated/objects-body-descriptors-tq-inl.inc
-  ${PROJECT_BINARY_DIR}/torque-generated/objects-printer-tq.cc
+  #${PROJECT_BINARY_DIR}/torque-generated/objects-body-descriptors-tq-inl.inc
+  #${PROJECT_BINARY_DIR}/torque-generated/objects-printer-tq.cc
   ${PROJECT_BINARY_DIR}/torque-generated/objects-printer.cc
+  ${PROJECT_BINARY_DIR}/torque-generated/enum-verifiers.cc
 )
 
 list(TRANSFORM torque_files
@@ -819,13 +824,18 @@ endforeach()
 
 list(REMOVE_DUPLICATES torque_dirs)
 
+set_source_files_properties(
+  ${torque-outputs}
+  ${torque_outputs}
+  PROPERTIES GENERATED true)
+
 add_library(
   v8_torque_generated STATIC
   ${torque-outputs}
   ${torque_outputs}
 )
 
-target_compile_definitions(v8_torque_generated PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
+target_compile_definitions(v8_torque_generated PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0> $<${is-msvc}:_CRT_SECURE_NO_WARNINGS>)
 target_compile_options(v8_torque_generated PRIVATE ${disable-exceptions})
 target_link_libraries(v8_torque_generated PRIVATE v8-bytecodes-builtin-list)
 
@@ -838,16 +848,21 @@ target_include_directories(v8_torque_generated
 
 if (WIN32)
   list(JOIN torque_files " " torque_files)
+  list(APPEND torque_all ${torque_outputs} ${torque-outputs})
+  list(JOIN torque_all " " torque_all)
 endif()
+message(STATUS ${torque_files})
 
 add_custom_command(
+  COMMAND 
+    ${CMAKE_COMMAND} -E echo "Running Torque..."
   COMMAND
     torque
     -o ${PROJECT_BINARY_DIR}/torque-generated
     -v8-root ${PROJECT_SOURCE_DIR}/v8
     ${torque_files}
-  #COMMAND
-  #  ${CMAKE_COMMAND} -E touch ${torque-outputs} ${torque_outputs}
+  COMMAND
+    ${CMAKE_COMMAND} -E touch ${torque_all}
   DEPENDS
     torque
     ${torque_dirs}
@@ -858,6 +873,7 @@ add_custom_command(
 )
 
 add_custom_command(
+  COMMAND ${CMAKE_COMMAND} -E echo "Running make_directory ${torque_dirs}..."
   COMMAND
     ${CMAKE_COMMAND} -E make_directory ${torque_dirs}
   OUTPUT
