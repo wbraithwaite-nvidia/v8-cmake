@@ -846,16 +846,19 @@ target_include_directories(v8_torque_generated
     ${PROJECT_SOURCE_DIR}/v8
 )
 
+list(APPEND torque_all ${torque_outputs} ${torque-outputs})
+
 if (WIN32)
   list(JOIN torque_files " " torque_files)
-  list(APPEND torque_all ${torque_outputs} ${torque-outputs})
   list(JOIN torque_all " " torque_all)
 endif()
-message(STATUS ${torque_files})
+
+#message(STATUS "torque_dirs: ${torque_dirs}")
+#message(STATUS "torque_files: ${torque_files}")
 
 add_custom_command(
   COMMAND 
-    ${CMAKE_COMMAND} -E echo "Running Torque..."
+    ${CMAKE_COMMAND} -E echo "Running: torque -v8-root ${PROJECT_SOURCE_DIR}/v8 " ${torque_files}
   COMMAND
     torque
     -o ${PROJECT_BINARY_DIR}/torque-generated
@@ -865,20 +868,22 @@ add_custom_command(
     ${CMAKE_COMMAND} -E touch ${torque_all}
   DEPENDS
     torque
-    ${torque_dirs}
+    #${torque_dirs}
     ${torque_files_abs}
   OUTPUT
     ${torque-outputs}
     ${torque_outputs}
 )
 
-add_custom_command(
-  COMMAND ${CMAKE_COMMAND} -E echo "Running make_directory ${torque_dirs}..."
-  COMMAND
-    ${CMAKE_COMMAND} -E make_directory ${torque_dirs}
-  OUTPUT
-    ${torque_dirs}
-)
+if (false)
+  add_custom_command(
+    COMMAND ${CMAKE_COMMAND} -E echo "Running make_directory ${torque_dirs}..."
+    COMMAND
+      ${CMAKE_COMMAND} -E make_directory ${torque_dirs}
+    OUTPUT
+      ${torque_dirs}
+  )
+endif()
 
 #
 # torque

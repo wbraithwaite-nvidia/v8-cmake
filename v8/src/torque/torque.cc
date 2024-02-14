@@ -5,6 +5,9 @@
 #include "src/torque/source-positions.h"
 #include "src/torque/torque-compiler.h"
 
+#include <iterator>
+#include <filesystem>
+
 namespace v8 {
 namespace internal {
 namespace torque {
@@ -45,11 +48,32 @@ int WrappedMain(int argc, const char** argv) {
     } else {
       // Otherwise it's a .tq file. Remember it for compilation.
 
-      files = std::move(SplitFiles(std::move(argument)));
-      if (!StringEndsWith(files.back(), ".tq")) {
-        std::cerr << "Unexpected command-line argument \"" << files.back()
-                  << "\", expected a .tq file.\n";
-        base::OS::Abort();
+      for (const auto& f: SplitFiles(std::move(argument)))      
+      {
+        if (!StringEndsWith(f, ".tq")) {
+          std::cerr << "Unexpected command-line argument \"" << f
+                    << "\", expected a .tq file.\n";
+          base::OS::Abort();
+        }
+        files.push_back(f);
+      }
+    }
+
+    std::set<std::string> paths;
+    if (options.output_directory.length())
+    {
+      for(const auto& f : files)
+      {
+        auto rootPath = std::filesystem::path(options.output_directory);
+        auto filePath = rootPath / f;
+        auto pathStr = filePath.parent_path().string();
+        if (paths.count(pathStr) == 0)
+          paths.insert(pathStr);
+      }
+
+      for(const auto& p : paths)
+      {
+        std::filesystem::create_directory(p);
       }
     }
   }
