@@ -1,15 +1,17 @@
 function(v8_generate_builtins_list target-dir)
   set(directory ${target-dir}/builtins-generated)
   set(output ${directory}/bytecodes-builtins-list.h)
-
-  if(NOT EXISTS ${output})  
-    if(NOT EXISTS ${directory})
-      file(MAKE_DIRECTORY ${directory})    
+  
+  if (UNIX)
+    if(NOT EXISTS ${output})  
+      if(NOT EXISTS ${directory})
+        file(MAKE_DIRECTORY ${directory})    
+      endif()
+      file(TOUCH ${output})
     endif()
-    file(TOUCH ${output})
   endif()
 
-  if(NOT EXISTS "${directory}")
+  if(UNIX OR NOT EXISTS "${directory}")
     add_custom_command(
       COMMAND ${CMAKE_COMMAND} -E echo "Running make_directory ${directory}..."
       COMMAND ${CMAKE_COMMAND} -E make_directory ${directory}
@@ -18,7 +20,7 @@ function(v8_generate_builtins_list target-dir)
       VERBATIM)
   endif()
 
-  if(NOT EXISTS "${output}")
+  if(UNIX OR NOT EXISTS "${output}")
     add_custom_command(
       COMMAND ${CMAKE_COMMAND} -E echo "Running bytecode_builtins_list_generator..."
       COMMAND bytecode_builtins_list_generator ${output}

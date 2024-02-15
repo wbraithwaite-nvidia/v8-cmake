@@ -96,6 +96,12 @@ set(enable-fPIC
   $<$<CXX_COMPILER_ID:GNU>:-fPIC>
 )
 
+set(misc-options 
+    $<$<CXX_COMPILER_ID:GNU>:-Wno-return-type -Wno-int-in-bool-context -Wno-strict-overflow -Wno-deprecated-declarations>
+    $<$<CXX_COMPILER_ID:MSVC>:/wd4245 /wd4267 /wd4324 /wd4701 /wd4702 /wd4703 /wd4709 /wd4714 /wd4715 /wd4718 /wd4723 /wd4724 /wd4800>
+  )
+
+
 #
 # d8
 #
@@ -112,7 +118,7 @@ add_executable(
 )
 
 target_compile_definitions(d8 PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(d8 PRIVATE ${disable-exceptions})
+target_compile_options(d8 PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(d8 PRIVATE ${enable-fPIC})
 endif()
@@ -159,7 +165,7 @@ list(APPEND i18n-sources
 
 target_sources(v8-i18n-support PRIVATE ${i18n-sources})
 target_compile_definitions(v8-i18n-support PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8-i18n-support PRIVATE ${disable-exceptions})
+target_compile_options(v8-i18n-support PRIVATE ${disable-exceptions} ${misc-options})
 target_link_libraries(v8-i18n-support PRIVATE v8_torque_generated)
 
 target_include_directories(v8-i18n-support
@@ -355,7 +361,7 @@ set_property(SOURCE v8/src/diagnostics/unwinding-info-win64.cc
 )
 
 target_compile_definitions(v8_base_without_compiler PRIVATE ${v8_defines} $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_base_without_compiler PRIVATE ${disable-exceptions})
+target_compile_options(v8_base_without_compiler PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_base_without_compiler PRIVATE ${enable-fPIC})
 endif()
@@ -391,7 +397,7 @@ list(FILTER compiler-sources EXCLUDE REGEX ".*backend/.*/.*[.]cc$")
 add_library(v8_compiler STATIC)
 target_sources(v8_compiler PRIVATE ${compiler-sources})
 target_compile_definitions(v8_compiler PRIVATE ${v8_defines} $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_compiler PRIVATE ${disable-exceptions})
+target_compile_options(v8_compiler PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_compiler PRIVATE ${enable-fPIC})
 endif()
@@ -473,7 +479,7 @@ add_library(
 )
 
 target_compile_definitions(v8_initializers PRIVATE ${v8_defines} $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_initializers PRIVATE ${disable-exceptions})
+target_compile_options(v8_initializers PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_initializers PRIVATE ${enable-fPIC})
 endif()
@@ -500,7 +506,7 @@ add_library(
 )
 
 target_compile_definitions(v8_snapshot PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_snapshot PRIVATE ${disable-exceptions})
+target_compile_options(v8_snapshot PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_snapshot PRIVATE ${enable-fPIC})
 endif()
@@ -577,6 +583,8 @@ file(GLOB inspector-protocol-sources
 list(FILTER inspector-protocol-sources EXCLUDE REGEX "_test[.]cc$")
 list(FILTER inspector-protocol-sources EXCLUDE REGEX "crdtp/test_.*[.]cc$")
 
+if (false)
+
 add_library(v8_inspector STATIC
   ${inspector-protocol-sources}
   ${inspector-sources}
@@ -584,7 +592,7 @@ add_library(v8_inspector STATIC
 )
 
 target_compile_features(v8_inspector PUBLIC cxx_std_17)
-target_compile_options(v8_inspector PRIVATE ${disable-exceptions})
+target_compile_options(v8_inspector PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_inspector PRIVATE ${enable-fPIC})
 endif()
@@ -631,7 +639,7 @@ add_custom_command(
   OUTPUT
     ${inspector_files}
 )
-
+endif()
 #
 # v8_libplatform
 #
@@ -656,7 +664,7 @@ target_sources(v8_libplatform
 )
 
 target_compile_definitions(v8_libplatform PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_libplatform PRIVATE ${disable-exceptions})
+target_compile_options(v8_libplatform PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_libplatform PRIVATE ${enable-fPIC})
 endif()
@@ -683,7 +691,7 @@ target_include_directories(v8_libsampler
 )
 
 target_compile_definitions(v8_libsampler PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_libsampler PRIVATE ${disable-exceptions})
+target_compile_options(v8_libsampler PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_libsampler PRIVATE ${enable-fPIC})
 endif()
@@ -731,7 +739,7 @@ set_property(SOURCE v8/src/base/utils/random-number-generator.cc
 )
 
 target_compile_definitions(v8_libbase PRIVATE $<${is-win}:UNICODE> $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(v8_libbase PRIVATE ${disable-exceptions})
+target_compile_options(v8_libbase PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_libbase PRIVATE ${enable-fPIC})
 endif()
@@ -870,7 +878,7 @@ add_library(
 )
 
 target_compile_definitions(v8_torque_generated PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0> $<${is-msvc}:_CRT_SECURE_NO_WARNINGS>)
-target_compile_options(v8_torque_generated PRIVATE ${disable-exceptions})
+target_compile_options(v8_torque_generated PRIVATE ${disable-exceptions} ${misc-options})
 if(enable-fPIC)
   target_compile_options(v8_torque_generated PRIVATE ${enable-fPIC})
 endif()
@@ -932,7 +940,7 @@ file(GLOB torque-program-sources
 
 add_executable(torque)
 target_sources(torque PRIVATE ${torque-program-sources})
-target_compile_options(torque PRIVATE ${enable-exceptions})
+target_compile_options(torque PRIVATE ${enable-exceptions} ${misc-options})
 target_include_directories(torque PRIVATE ${PROJECT_SOURCE_DIR}/v8)
 target_link_libraries(torque PRIVATE v8_libbase)
 
@@ -954,7 +962,7 @@ add_executable(mksnapshot
 )
 
 target_compile_definitions(mksnapshot PRIVATE $<${is-msvc}:_HAS_EXCEPTIONS=0>)
-target_compile_options(mksnapshot PRIVATE ${disable-exceptions})
+target_compile_options(mksnapshot PRIVATE ${disable-exceptions} ${misc-options})
 target_include_directories(mksnapshot PRIVATE ${PROJECT_SOURCE_DIR}/v8)
 target_link_libraries(mksnapshot
   PRIVATE
